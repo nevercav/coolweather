@@ -353,7 +353,7 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
         }
     }
 
-    private void requestLocation() {
+    private synchronized void requestLocation() {
         LocationClientOption option=new LocationClientOption();
         option.setIsNeedAddress(true);
         mLocationClient.setLocOption(option);
@@ -366,10 +366,10 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
         }).start();
     }
     private void readFromCsv(){
-        InputStream abpath ;
+        InputStream abpath=null ;
        // File file=new File(abpath.toString());
        // FileInputStream fileInputStream;
-        Scanner in;
+        Scanner in=null;
         try{
             //fileInputStream=new FileInputStream(file);
             abpath = mContext.getAssets().open("chinacitylist.csv");
@@ -402,9 +402,20 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
                     }
                 }
             }
+            Toast.makeText(getContext(),"定位失败，未知地区!",Toast.LENGTH_SHORT).show();
         }catch (Exception e){
             e.printStackTrace();
         }
+        finally {
+            try {
+                if (in != null) in.close();
+                if (abpath != null) abpath.close();
+            }
+            catch (IOException e){
+                e.printStackTrace();
+            }
+        }
+
     }
 
     @Override
@@ -441,6 +452,8 @@ public class ChooseAreaFragment extends Fragment implements View.OnClickListener
             if(bdLocation.getLocType()==BDLocation.TypeGpsLocation||bdLocation.getLocType()==
                     BDLocation.TypeNetWorkLocation)localCity=bdLocation.getDistrict();
             localCity=localCity.replace("市","");
+            localCity=localCity.replace("区","");
+            Log.d("ChooseAreaFragment", "onReceiveLocation: "+bdLocation.getLocType()+bdLocation.getDistrict());
 
         }
     }
